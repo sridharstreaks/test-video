@@ -2,4 +2,4 @@ streamlit
 selenium
 requests
 lxml
-webdriver-manage
+webdriver-manager
