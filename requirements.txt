@@ -1,0 +1,5 @@
+streamlit
+selenium
+requests
+lxml
+webdriver-manage
