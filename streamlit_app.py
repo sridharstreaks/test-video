@@ -57,10 +57,11 @@ def movie_quality(selected_movie_link): #3
             tree = html.fromstring(response.content)
             for i in range (0,int(tree.xpath("count(//ul[@class='sitelinks'])"))):
                 dictionary[tree.xpath("//ul[@class='sitelinks']//a//b/text()")[i]]=tree.xpath("//ul[@class='sitelinks']//a/@href")[i]
-            selected_quality=movie_selection(dictionary)
+            return dictionary
+        else:
+            return []
             #recommendations=recommendation_engine
             #print(recommendations)
-            return selected_quality
 
 def stream_link_fetcher(selected_quality): #4
     url=selected_quality
@@ -127,38 +128,67 @@ def extract_url(log):
 
 
 # -------------------------------------- Page & UI/UX Components -------------------------------------
+# Initialize session state variables
+if "step" not in st.session_state:
+    st.session_state.step = 1
+    st.session_state.keyword=''
+    st.session_state.dictionary = {}
+    st.session_state.selected_option_1 = None
+    st.session_state.selected_option_2 = None
+    st.session_state.streamlink=''
 
 # Streamlit app
 st.title("Streaks Movies - Stream or Download Movies")
 
-# Text input for user
-keyword = st.text_input("Search for your fav movie below:", placeholder="Type here and press Enter...")
 
-clicked = st.button("Load Page Content",type="secondary")
+# Step 1: Text Input & Search Button
+if st.session_state.step == 1:
+    # Text input for user
+    keyword = st.text_input("Enter your search query:", value=st.session_state.keyword)
+    if st.button("Search"):
+        if keyword.strip():
+            st.session_state.keyword = keyword
+            dictionary = movie_search(keyword)
+            st.session_state.dictionary = dictionary
+            st.session_state.step = 2  # Proceed to the next step
 
-if clicked:
-    dictionary = movie_search(keyword)
+# Step 2: Present Options Based on Search
+elif st.session_state.step == 2:
+    movie_options_list = movie_selection(st.session_state.dictionary)
+    selection_1 = st.radio("Select Preferred:", movie_options_list, index=movie_options_list.index(st.session_state.selected_option_1) if st.session_state.selected_option_1 else 0)
+    st.session_state.selected_option_1 = selection_1
+    st.session_state.step = 3  # Proceed to the next step
 
-    movie_options_list = movie_selection(dictionary)
-    selection = st.pills("Select Preferred", movie_options_list, selection_mode="single")
-    if selection:
-        selected_movie_link= dictionary.get(selection)
-        st.markdown(f"Your selected options: {selection}.")
+# Step 3: Further Operations Based on Selection
+elif st.session_state.step == 3:
+    selected_movie_link= st.session_state.dictionary.get(st.session_state.selected_option_1)
+    st.markdown(f"Your selected options: {st.session_state.selected_option_1}.")
+    dictionary = movie_quality(selected_movie_link)
+    st.session_state.dictionary = dictionary
+    st.session_state.step = 4
 
-        quality_options_list = movie_quality(selected_movie_link)
-        selection = st.pills("Select Preferred", quality_options_list, selection_mode="single")
-        if selection:
-            selected_quality= dictionary.get(selection)
-            st.markdown(f"Your selected options: {selection}.")
+elif st.session_state.step == 4:
+    quality_options_list = movie_selection(st.session_state.dictionary)
+    selection_2 = st.radio("Select Preferred:", quality_options_list, index=quality_options_list.index(st.session_state.selected_option_2) if st.session_state.selected_option_2 else 0)
+    st.session_state.selected_option_2 = selection_2
+    st.session_state.step = 5  # Proceed to the next step
 
-            final_link = stream_link_fetcher(selected_quality)
+elif st.session_state.step == 5:
+    selected_quality = st.session_state.dictionary.get(st.session_state.selected_option_2)
+    st.markdown(f"Your selected options: {st.session_state.selected_option_2}.")
+    final_link = stream_link_fetcher(selected_quality)
 
-            logs = get_website_content(final_link)
+    logs = get_website_content(final_link)
 
-            log = process_browser_logs_for_network_events(logs)
+    log = process_browser_logs_for_network_events(logs)
 
-            streamlink = extract_url(log)
+    streamlink = extract_url(log)
+    st.success('stream link fetched', icon="✅")
+    if st.button("Play")
+        st.session_state.streamlink = streamlink
+        st.session_state.step = 6
 
-            st.video(streamlink)
-            time.sleep(5)
-            st.link_button("Save to Device",streamlink,type="primary")
+elif st.session_state.step == 6:
+    st.video(st.session_state.streamlink)
+    time.sleep(5)
+    st.link_button("Save to Device",st.session_state.streamlink,type="primary")
