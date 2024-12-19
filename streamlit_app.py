@@ -184,7 +184,7 @@ elif st.session_state.step == 5:
 
     streamlink = extract_url(log)
     st.success('stream link fetched', icon="✅")
-    if st.button("Play")
+    if st.button("Play"):
         st.session_state.streamlink = streamlink
         st.session_state.step = 6
 
