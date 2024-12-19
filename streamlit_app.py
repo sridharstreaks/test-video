@@ -34,13 +34,12 @@ def movie_search(keyword): #gives search results for each search #1
     else:
         return []
     
-def movie_selection(dictionary): #movie/quality selector #2
-    if dictionary:
-        options = list(dictionary.keys())
-        selection = st.pills("Select Preffered", options, selection_mode="single")
-        selected_movie_link= dictionary.get(selection)
-        st.markdown(f"Your selected options: {selection}.")
-        return selected_movie_link
+def movie_selection(selection): #movie/quality selector #2
+    if isinstance(selection,dict):
+        options = list(selection.keys())
+        return options
+    elif isinstance(selection,str):
+        return selection
 
 #def recommendation_engine(): #3.1
 #    recommendations={}
@@ -140,18 +139,26 @@ clicked = st.button("Load Page Content",type="secondary")
 if clicked:
     dictionary = movie_search(keyword)
 
-    selected_movie_link = movie_selection(dictionary)
+    movie_options_list = movie_selection(dictionary)
+    selection = st.pills("Select Preferred", movie_options_list, selection_mode="single")
+    if selection:
+        selected_movie_link= dictionary.get(selection)
+        st.markdown(f"Your selected options: {selection}.")
 
-    selected_quality = movie_quality(selected_movie_link)
+        quality_options_list = movie_quality(selected_movie_link)
+        selection = st.pills("Select Preferred", quality_options_list, selection_mode="single")
+        if selection:
+            selected_quality= dictionary.get(selection)
+            st.markdown(f"Your selected options: {selection}.")
 
-    final_link = stream_link_fetcher(selected_quality)
+            final_link = stream_link_fetcher(selected_quality)
 
-    logs = get_website_content(final_link)
+            logs = get_website_content(final_link)
 
-    log = process_browser_logs_for_network_events(logs)
+            log = process_browser_logs_for_network_events(logs)
 
-    streamlink = extract_url(log)
+            streamlink = extract_url(log)
 
-    st.video(streamlink)
-    time.sleep(5)
-    st.link_button("Save to Device",streamlink,type="primary")
+            st.video(streamlink)
+            time.sleep(5)
+            st.link_button("Save to Device",streamlink,type="primary")
