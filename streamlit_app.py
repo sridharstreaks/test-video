@@ -140,11 +140,6 @@ if st.session_state.step == 1:
             st.rerun()
         else:
             st.write("No results found")
-            if st.button("Start Over"):
-                for key in ['step', 'search_result', 'first_selection', 'second_result', 'final_selection']:
-                    st.session_state[key] = None
-                st.session_state.step = 1
-                st.rerun()
 
 # Step 2: Present Options Based on Search
 elif st.session_state.step == 2 and st.session_state.dictionary:
