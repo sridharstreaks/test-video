@@ -33,13 +33,6 @@ def movie_search(keyword): #gives search results for each search #1
         return dictionary
     else:
         return []
-    
-def movie_selection(selection): #movie/quality selector #2
-    if isinstance(selection,dict):
-        options = list(selection.keys())
-        return options
-    elif isinstance(selection,str):
-        return selection
 
 #def recommendation_engine(): #3.1
 #    recommendations={}
@@ -77,13 +70,6 @@ def stream_link_fetcher(selected_quality): #4
 ######################################## End of Initial Links Extraction ##########################################################
 
 ######################################### Stream Link Extraction #######################################################
-
-def process_browser_logs_for_network_events(logs): #process and fetch only relevant log file
-    for entry in logs:
-        log = json.loads(entry["message"])["message"]
-        if log.get('method') == 'Network.responseReceived' and log.get('params', {}).get('response', {}).get('mimeType') == 'text/html':
-            return log
-
 
 def get_website_content(url): #uses selenium to mimic a click
     driver = None
@@ -131,11 +117,16 @@ def extract_url(log):
 # Initialize session state variables
 if "step" not in st.session_state:
     st.session_state.step = 1
-    st.session_state.keyword=''
-    st.session_state.dictionary = {}
+if "dictionary" not in st.session_state:
+    st.session_state.dictionary = None
+if "movie_options_list" not in st.session_state:
+    st.session_state.movie_options_list = None
+if "selected_option_1" not in st.session_state:
     st.session_state.selected_option_1 = None
+if "selected_option_2" not in st.session_state:
     st.session_state.selected_option_2 = None
-    st.session_state.streamlink=''
+if "streamlink" not in st.session_state:
+    st.session_state.streamlink= None
 
 # Streamlit app
 st.title("Streaks Movies - Stream or Download Movies")
@@ -143,52 +134,47 @@ st.title("Streaks Movies - Stream or Download Movies")
 
 # Step 1: Text Input & Search Button
 if st.session_state.step == 1:
-    # Text input for user
-    keyword = st.text_input("Enter your search query:", value=st.session_state.keyword)
+    st.write("### Step 1: Enter a movie title")
+    query = st.text_input("Enter your search query:")
     if st.button("Search"):
-        if keyword.strip():
-            st.session_state.keyword = keyword
-            dictionary = movie_search(keyword)
-            st.session_state.dictionary = dictionary
-            st.session_state.step = 2  # Proceed to the next step
+        st.session_state.dictionary = movie_search(query)
+        st.session_state.step = 2
+        st.rerun()
 
 # Step 2: Present Options Based on Search
-elif st.session_state.step == 2:
-    movie_options_list = movie_selection(st.session_state.dictionary)
-    selection_1 = st.radio("Select Preferred:", movie_options_list, index=movie_options_list.index(st.session_state.selected_option_1) if st.session_state.selected_option_1 else 0)
-    st.session_state.selected_option_1 = selection_1
-    st.session_state.step = 3  # Proceed to the next step
+if st.session_state.step == 2 and st.session_state.dictionary:
+    st.write("### Step 2: Select an Movie option")
+    selected_option_1 = st.radio("Select Preferred:", list(st.session_state.dictionary.keys()))
+    if st.button("Confirm Movie"):
+        st.session_state.selected_option_1 = st.session_state.dictionary[selected_option_1]
+        st.session_state.step = 3
+        st.rerun()
 
 # Step 3: Further Operations Based on Selection
-elif st.session_state.step == 3:
-    selected_movie_link= st.session_state.dictionary.get(st.session_state.selected_option_1)
-    st.markdown(f"Your selected options: {st.session_state.selected_option_1}.")
-    dictionary = movie_quality(selected_movie_link)
-    st.session_state.dictionary = dictionary
-    st.session_state.step = 4
+if st.session_state.step == 3 and st.session_state.selected_option_1:
+    st.session_state.dictionary = movie_quality(st.session_state.selected_option_1)
+    selected_option_2 = st.radio("Select Preferred:", list(st.session_state.dictionary.keys()))
+    if st.button("Confirm Movie Quality"):
+        st.session_state.selected_option_2 = st.session_state.dictionary[selected_option_2]
+        st.session_state.step = 4
+        st.rerun()
 
-elif st.session_state.step == 4:
-    quality_options_list = movie_selection(st.session_state.dictionary)
-    selection_2 = st.radio("Select Preferred:", quality_options_list, index=quality_options_list.index(st.session_state.selected_option_2) if st.session_state.selected_option_2 else 0)
-    st.session_state.selected_option_2 = selection_2
-    st.session_state.step = 5  # Proceed to the next step
+if st.session_state.step == 4:
+    with st.spinner("Fetching Streaming Link"):
+        final_link = stream_link_fetcher(st.session_state.selected_option_2)
+
+        logs = get_website_content(final_link)
+
+        log = process_browser_logs_for_network_events(logs)
+
+        streamlink = extract_url(log)
+        st.success('stream link fetched', icon="✅")
+        if st.button("Play"):
+            st.session_state.streamlink = streamlink
+            st.session_state.step = 5
+            st.rerun()
 
 elif st.session_state.step == 5:
-    selected_quality = st.session_state.dictionary.get(st.session_state.selected_option_2)
-    st.markdown(f"Your selected options: {st.session_state.selected_option_2}.")
-    final_link = stream_link_fetcher(selected_quality)
-
-    logs = get_website_content(final_link)
-
-    log = process_browser_logs_for_network_events(logs)
-
-    streamlink = extract_url(log)
-    st.success('stream link fetched', icon="✅")
-    if st.button("Play"):
-        st.session_state.streamlink = streamlink
-        st.session_state.step = 6
-
-elif st.session_state.step == 6:
     st.video(st.session_state.streamlink)
     time.sleep(5)
     st.link_button("Save to Device",st.session_state.streamlink,type="primary")
