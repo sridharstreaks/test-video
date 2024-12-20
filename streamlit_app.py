@@ -139,7 +139,7 @@ if st.session_state.step == 1:
         st.rerun()
 
 # Step 2: Present Options Based on Search
-if st.session_state.step == 2 and st.session_state.dictionary:
+elif st.session_state.step == 2 and st.session_state.dictionary:
     selected_option_1 = st.pills("Select an Movie option:", list(st.session_state.dictionary.keys()))
     if st.button("Confirm Movie"):
         st.session_state.selected_option_1 = st.session_state.dictionary[selected_option_1]
@@ -147,7 +147,7 @@ if st.session_state.step == 2 and st.session_state.dictionary:
         st.rerun()
 
 # Step 3: Further Operations Based on Selection
-if st.session_state.step == 3 and st.session_state.selected_option_1:
+elif st.session_state.step == 3 and st.session_state.selected_option_1:
     st.session_state.dictionary = movie_quality(st.session_state.selected_option_1)
     selected_option_2 = st.pills("Select an Movie option:", list(st.session_state.dictionary.keys()))
     if st.button("Confirm Movie Quality"):
@@ -155,7 +155,7 @@ if st.session_state.step == 3 and st.session_state.selected_option_1:
         st.session_state.step = 4
         st.rerun()
 
-if st.session_state.step == 4 and st.session_state.selected_option_2:
+elif st.session_state.step == 4 and st.session_state.selected_option_2:
     with st.spinner("Fetching Streaming Link"):
         final_link = stream_link_fetcher(st.session_state.selected_option_2)
 
@@ -167,12 +167,14 @@ if st.session_state.step == 4 and st.session_state.selected_option_2:
         st.success('stream link fetched', icon="✅")
     if st.button("Play"):
         st.session_state.step = 5
+        st.rerun()
 
 elif st.session_state.step == 5:
     st.video(st.session_state.streamlink)
     time.sleep(5)
     st.link_button("Save to Device",st.session_state.streamlink,type="primary")
 
+    #Start Over button
     if st.button("**Wanna watch/download another Movie?**",icon="🚨"):
         for key in ['step', 'dictionary', 'selected_option_1', 'selected_option_2', 'streamlink']:
             st.session_state[key] = None
