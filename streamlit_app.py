@@ -169,18 +169,21 @@ elif st.session_state.step == 3 and st.session_state.selected_option_1:
         st.rerun()
 
 elif st.session_state.step == 4 and st.session_state.selected_option_2:
-    with st.spinner("Fetching Streaming Link"):
-        final_link = stream_link_fetcher(st.session_state.selected_option_2)
-
-        logs = get_website_content(final_link)
-
-        log = process_browser_logs_for_network_events(logs)
-
-        st.session_state.streamlink = extract_url(log)
-        st.success('stream link fetched', icon="✅")
-    if st.button("Play"):
-        st.session_state.step = 5
-        st.rerun()
+    if "streamlink" not in st.session_state or st.session_state.streamlink is None:
+        with st.spinner("Fetching Streaming Link"):
+            final_link = stream_link_fetcher(st.session_state.selected_option_2)
+    
+            logs = get_website_content(final_link)
+    
+            log = process_browser_logs_for_network_events(logs)
+    
+            st.session_state.streamlink = extract_url(log)
+            st.success('stream link fetched', icon="✅")
+    # Show the Play button only after the link is fetched  
+    if st.session_state.streamlink:
+        if st.button("Play"):
+            st.session_state.step = 5
+            st.rerun()
     elif st.button("Start Over"):
         for key in ['step', 'search_result', 'first_selection', 'second_result', 'final_selection']:
             st.session_state[key] = None
