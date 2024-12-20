@@ -167,7 +167,6 @@ if st.session_state.step == 4 and st.session_state.selected_option_2:
         st.success('stream link fetched', icon="✅")
     if st.button("Play"):
         st.session_state.step = 5
-        st.rerun()
 
 elif st.session_state.step == 5:
     st.video(st.session_state.streamlink)
