@@ -135,8 +135,11 @@ if st.session_state.step == 1:
     query = st.text_input("Enter a movie title")
     if st.button("Search"):
         st.session_state.dictionary = movie_search(query)
-        st.session_state.step = 2
-        st.rerun()
+        if st.session_state.dictionary:
+            st.session_state.step = 2
+            st.rerun()
+        else:
+            st.rerun()
 
 # Step 2: Present Options Based on Search
 elif st.session_state.step == 2 and st.session_state.dictionary:
