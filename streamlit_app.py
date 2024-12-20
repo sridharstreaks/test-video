@@ -148,6 +148,11 @@ elif st.session_state.step == 2 and st.session_state.dictionary:
         st.session_state.selected_option_1 = st.session_state.dictionary[selected_option_1]
         st.session_state.step = 3
         st.rerun()
+    elif st.button("Start Over"):
+        for key in ['step', 'search_result', 'first_selection', 'second_result', 'final_selection']:
+            st.session_state[key] = None
+        st.session_state.step = 1
+        st.rerun()
 
 # Step 3: Further Operations Based on Selection
 elif st.session_state.step == 3 and st.session_state.selected_option_1:
@@ -156,6 +161,11 @@ elif st.session_state.step == 3 and st.session_state.selected_option_1:
     if st.button("Confirm Movie Quality"):
         st.session_state.selected_option_2 = st.session_state.dictionary[selected_option_2]
         st.session_state.step = 4
+        st.rerun()
+    elif st.button("Start Over"):
+        for key in ['step', 'search_result', 'first_selection', 'second_result', 'final_selection']:
+            st.session_state[key] = None
+        st.session_state.step = 1
         st.rerun()
 
 elif st.session_state.step == 4 and st.session_state.selected_option_2:
@@ -170,6 +180,11 @@ elif st.session_state.step == 4 and st.session_state.selected_option_2:
         st.success('stream link fetched', icon="✅")
     if st.button("Play"):
         st.session_state.step = 5
+        st.rerun()
+    elif st.button("Start Over"):
+        for key in ['step', 'search_result', 'first_selection', 'second_result', 'final_selection']:
+            st.session_state[key] = None
+        st.session_state.step = 1
         st.rerun()
 
 elif st.session_state.step == 5:
