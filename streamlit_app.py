@@ -84,7 +84,7 @@ def get_website_content(url): #uses selenium to mimic a click
         # For local Development                          
         #service = Service('C:\\ChromeDriver_Path')  # Replace with your ChromeDriver path
         #driver = webdriver.Chrome(service=service, options=chrome_options)
-        st.write(f"DEBUG:DRIVER:{driver}")
+        #st.write(f"DEBUG:DRIVER:{driver}")
         driver.get(url)
         time.sleep(5)
         html_doc = driver.page_source
@@ -119,8 +119,6 @@ if "step" not in st.session_state:
     st.session_state.step = 1
 if "dictionary" not in st.session_state:
     st.session_state.dictionary = None
-if "movie_options_list" not in st.session_state:
-    st.session_state.movie_options_list = None
 if "selected_option_1" not in st.session_state:
     st.session_state.selected_option_1 = None
 if "selected_option_2" not in st.session_state:
@@ -134,8 +132,7 @@ st.title("Streaks Movies - Stream or Download Movies")
 
 # Step 1: Text Input & Search Button
 if st.session_state.step == 1:
-    st.write("### Step 1: Enter a movie title")
-    query = st.text_input("Enter your search query:")
+    query = st.text_input("Enter a movie title")
     if st.button("Search"):
         st.session_state.dictionary = movie_search(query)
         st.session_state.step = 2
@@ -143,8 +140,7 @@ if st.session_state.step == 1:
 
 # Step 2: Present Options Based on Search
 if st.session_state.step == 2 and st.session_state.dictionary:
-    st.write("### Step 2: Select an Movie option")
-    selected_option_1 = st.radio("Select Preferred:", list(st.session_state.dictionary.keys()))
+    selected_option_1 = st.pills("Select an Movie option:", list(st.session_state.dictionary.keys()))
     if st.button("Confirm Movie"):
         st.session_state.selected_option_1 = st.session_state.dictionary[selected_option_1]
         st.session_state.step = 3
@@ -153,7 +149,7 @@ if st.session_state.step == 2 and st.session_state.dictionary:
 # Step 3: Further Operations Based on Selection
 if st.session_state.step == 3 and st.session_state.selected_option_1:
     st.session_state.dictionary = movie_quality(st.session_state.selected_option_1)
-    selected_option_2 = st.radio("Select Preferred:", list(st.session_state.dictionary.keys()))
+    selected_option_2 = st.pills("Select an Movie option:", list(st.session_state.dictionary.keys()))
     if st.button("Confirm Movie Quality"):
         st.session_state.selected_option_2 = st.session_state.dictionary[selected_option_2]
         st.session_state.step = 4
@@ -169,12 +165,18 @@ if st.session_state.step == 4:
 
         streamlink = extract_url(log)
         st.success('stream link fetched', icon="✅")
-        if st.button("Play"):
-            st.session_state.streamlink = streamlink
-            st.session_state.step = 5
-            st.rerun()
+    if st.button("Play"):
+        st.session_state.streamlink = streamlink
+        st.session_state.step = 5
+        st.rerun()
 
 elif st.session_state.step == 5:
     st.video(st.session_state.streamlink)
     time.sleep(5)
     st.link_button("Save to Device",st.session_state.streamlink,type="primary")
+
+    if st.button("**Start Over**",icon="🚨"):
+        for key in ['step', 'dictionary', 'selected_option_1', 'selected_option_2', 'streamlink']:
+            st.session_state[key] = None
+        st.session_state.step = 1
+        st.rerun()
